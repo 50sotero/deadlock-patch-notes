@@ -349,8 +349,10 @@
     backdrop-filter: blur(20px) saturate(140%);
     border-bottom:1px solid rgba(255,255,255,.06);
   }
-  .brand{font-size:15px; letter-spacing:.08em; text-transform:uppercase;}
+  .brand{font-size:15px; letter-spacing:.08em; text-transform:uppercase; display:flex; align-items:center; gap:10px;}
   .brand small{font-size:12px; text-transform:none;}
+  .topbar-logo{width:28px; height:28px; flex:0 0 auto; filter:invert(1) brightness(0.9); opacity:0.85; transition:opacity .2s ease; object-fit:contain;}
+  .topbar-logo:hover{opacity:1;}
   .nav a{
     background:rgba(255,255,255,.03);
     color:#cbd5e8;
@@ -386,7 +388,26 @@
     margin-bottom:14px;
     align-items:flex-end;
   }
-  .section-head h2{font-size:clamp(24px,3vw,34px);}
+  .section-head h2{
+    font-size:clamp(24px,3vw,34px);
+    background:linear-gradient(135deg, var(--text) 40%, var(--gold) 70%, var(--purple) 100%);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+  .section-head::after{
+    content:"";
+    display:block;
+    width:100%;
+    height:2px;
+    margin-top:14px;
+    background:linear-gradient(90deg, transparent, rgba(240,182,79,.3) 20%, rgba(181,123,255,.35) 50%, rgba(86,211,154,.3) 80%, transparent);
+    border-radius:2px;
+  }
+  .pill.buff:hover{box-shadow:0 0 12px rgba(46,210,139,.3);}
+  .pill.nerf:hover{box-shadow:0 0 12px rgba(255,107,115,.3);}
+  .pill.rework:hover{box-shadow:0 0 12px rgba(242,196,90,.3);}
+  .pill.fix:hover{box-shadow:0 0 12px rgba(106,183,255,.3);}
   .general-grid{
     grid-template-columns:repeat(3,minmax(0,1fr));
     gap:14px;
@@ -1395,6 +1416,67 @@
     50% { opacity: 1; filter: saturate(1.15); }
   }
 
+  /* ── Particle field overlay ── */
+  .city-particles {
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 8% 22%, rgba(240,182,79,.3) 0 1.2px, transparent 1.2px),
+      radial-gradient(circle at 22% 78%, rgba(86,211,154,.25) 0 1px, transparent 1px),
+      radial-gradient(circle at 38% 42%, rgba(255,255,255,.2) 0 0.8px, transparent 0.8px),
+      radial-gradient(circle at 55% 18%, rgba(181,123,255,.28) 0 1px, transparent 1px),
+      radial-gradient(circle at 68% 72%, rgba(240,182,79,.2) 0 1.2px, transparent 1.2px),
+      radial-gradient(circle at 82% 35%, rgba(86,211,154,.22) 0 0.8px, transparent 0.8px),
+      radial-gradient(circle at 92% 88%, rgba(181,123,255,.2) 0 1px, transparent 1px),
+      radial-gradient(circle at 45% 92%, rgba(255,255,255,.18) 0 0.6px, transparent 0.6px),
+      radial-gradient(circle at 12% 55%, rgba(240,182,79,.15) 0 0.8px, transparent 0.8px),
+      radial-gradient(circle at 75% 50%, rgba(181,123,255,.18) 0 1px, transparent 1px);
+    opacity: .35;
+    animation: particleDrift 28s linear infinite alternate;
+    pointer-events: none;
+  }
+  @keyframes particleDrift {
+    0%   { transform: translate3d(0, 0, 0) scale(1); }
+    50%  { transform: translate3d(-8px, -12px, 0) scale(1.02); }
+    100% { transform: translate3d(6px, 8px, 0) scale(0.98); }
+  }
+
+  /* ── Vignette overlay ── */
+  .city-vignette {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 45%, rgba(5,8,13,.55) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ── Scanline overlay (CRT gaming feel) ── */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,.03) 2px,
+      rgba(0,0,0,.03) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+    opacity: .4;
+    mix-blend-mode: multiply;
+  }
+
+  /* ── Balance map watermark rotation ── */
+  .balance-logo-watermark::before {
+    animation: watermarkSpin 60s linear infinite;
+  }
+  @keyframes watermarkSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .deadlock-city-bg::before,
     .deadlock-city-bg::after,
@@ -1402,8 +1484,11 @@
     .city-fog::before,
     .city-fog::after,
     .city-sparks,
+    .city-particles,
     .hero-node-avatar,
     .balance-map::after,
+    .balance-logo-watermark::before,
+    .hero-bg-logo,
     .hero-copy:hover::after,
     .summary-board:hover::after,
     .map-panel:hover::after,
@@ -1576,25 +1661,76 @@
   /* ── Deadlock logo watermark ── */
   .hero-bg-logo {
     position: absolute;
-    right: -20px;
+    left: 50%;
     top: 50%;
-    transform: translateY(-50%);
-    width: 560px;
-    opacity: 0.07;
+    transform: translate(-50%, -50%);
+    width: min(680px, 85%);
+    opacity: 0.06;
     pointer-events: none;
     user-select: none;
     z-index: 0;
+    animation: logoPulse 8s ease-in-out infinite alternate;
   }
   .hero-bg-logo img {
     width: 100%;
     height: auto;
     display: block;
-    /* Invert the light logo so it reads as light-on-dark against the card */
-    filter: invert(1) brightness(0.9);
+    filter: invert(1) brightness(0.85);
+  }
+  @keyframes logoPulse {
+    0%   { opacity: 0.04; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0.08; transform: translate(-50%, -50%) scale(1.03); }
   }
   .hero-copy > *:not(.hero-bg-logo) {
     position: relative;
     z-index: 1;
+  }
+</style>
+
+<style id="footer-styles">
+  .site-footer{margin-top:48px; padding:0 0 32px;}
+  .footer-divider{
+    height:2px;
+    background:linear-gradient(90deg, transparent, rgba(240,182,79,.25) 25%, rgba(181,123,255,.3) 50%, rgba(86,211,154,.25) 75%, transparent);
+    margin-bottom:28px;
+    border-radius:2px;
+  }
+  .footer-content{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    flex-wrap:wrap;
+    padding:20px 24px;
+    border-radius:20px;
+    background:linear-gradient(180deg, rgba(16,21,33,.7), rgba(10,14,22,.8));
+    border:1px solid rgba(255,255,255,.06);
+  }
+  .footer-brand{display:flex; align-items:center; gap:12px;}
+  .footer-logo{width:32px; height:auto; filter:invert(1) brightness(0.85); opacity:0.6; object-fit:contain;}
+  .footer-title{font-size:14px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--muted);}
+  .footer-links a{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 14px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.08);
+    background:rgba(255,255,255,.04);
+    color:var(--muted);
+    font-size:13px;
+    font-weight:600;
+    text-decoration:none;
+    transition:border-color .2s ease, color .2s ease;
+  }
+  .footer-links a:hover{border-color:rgba(255,255,255,.16); color:var(--text);}
+  .footer-counter{display:flex; align-items:center; gap:10px;}
+  .counter-label{color:var(--muted); font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.1em;}
+  .hit-counter-badge{height:24px; border-radius:6px; opacity:0.85; transition:opacity .2s ease; filter:brightness(0.85) contrast(1.1);}
+  .hit-counter-badge:hover{opacity:1;}
+  .footer-copyright{text-align:center; margin:16px 0 0; color:rgba(152,165,189,.5); font-size:11px;}
+  @media (max-width:760px){
+    .footer-content{flex-direction:column; align-items:center; text-align:center; gap:16px; padding:18px 16px;}
   }
 </style>
 </head>
@@ -1603,11 +1739,16 @@
 <div aria-hidden="true" class="deadlock-city-bg">
   <span class="city-fog"></span>
   <span class="city-sparks"></span>
+  <span class="city-particles"></span>
+  <span class="city-vignette"></span>
 </div>
 
 <div class="topbar">
 <div class="topbar-inner">
-<div class="brand">Deadlock Patch Notes <small>refined visual reformat</small></div>
+<div class="brand">
+  <img src="https://cdn2.steamgriddb.com/logo/e57ec101c0cd7bb3bdab5cd4667baa33.png" alt="Deadlock" class="topbar-logo" draggable="false"/>
+  Deadlock Patch Notes <small>refined visual reformat</small>
+</div>
 <nav class="nav">
 <a href="#dashboard">Dashboard</a>
 <a href="#general">General</a>
@@ -3608,9 +3749,31 @@
 </div>
 </details>
 </div>
-<p class="footer-note" style="text-align:center;">
-  Made by <a href="https://github.com/50sotero" target="_blank" rel="noopener" style="color:var(--muted); text-decoration:underline; text-underline-offset:3px;">github.com/50sotero</a>
-</p>
+<footer class="site-footer">
+  <div class="footer-divider"></div>
+  <div class="footer-content">
+    <div class="footer-brand">
+      <img src="https://cdn2.steamgriddb.com/logo/e57ec101c0cd7bb3bdab5cd4667baa33.png"
+           alt="" class="footer-logo" draggable="false" aria-hidden="true"/>
+      <span class="footer-title">Deadlock Patch Notes</span>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/50sotero" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.694.825.576C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+        github.com/50sotero
+      </a>
+    </div>
+    <div class="footer-counter">
+      <span class="counter-label">Views</span>
+      <a href="https://hits.dwyl.com/50sotero/deadlock-patch-notes" target="_blank" rel="noopener">
+        <img src="https://hits.dwyl.com/50sotero/deadlock-patch-notes.svg?style=flat-square&show=unique"
+             alt="Page views" class="hit-counter-badge"
+             onerror="this.style.display='none'"/>
+      </a>
+    </div>
+  </div>
+  <p class="footer-copyright">Fan-made visual reformat. Deadlock is a trademark of Valve Corporation.</p>
+</footer>
 </section>
 </main>
 <script>
@@ -3906,9 +4069,13 @@
         });
       }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
 
-      revealTargets.forEach((el) => io.observe(el));
+      revealTargets.forEach((el) => {
+        io.observe(el);
+      });
     } else {
-      revealTargets.forEach((el) => el.classList.add('is-visible'));
+      revealTargets.forEach((el) => {
+        el.classList.add('is-visible');
+      });
     }
 
     const cityBg = document.querySelector('.deadlock-city-bg');
